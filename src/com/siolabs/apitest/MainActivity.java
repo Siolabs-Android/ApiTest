@@ -1,9 +1,14 @@
 package com.siolabs.apitest;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -12,7 +17,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -69,15 +75,63 @@ public class MainActivity extends Activity {
             
         	
         	
-        	//this is the login response, logged so you can see it - just use the second part of the log for anything you want to do with the data
-        	//Log.d("Login: Response", EntityUtils.toString(response.getEntity()));
+             	//Log.d("Login: Response", EntityUtils.toString(response.getEntity()));
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}  
+		}
+        
+        HttpURLConnection urlConnection = null;
+        
+        //code to save a details in the api cloud
+        try {
+			URL urlObj = new URL(url);
+			
+			//create a request to apispark and open connection
+			urlConnection =(HttpURLConnection) urlObj.openConnection();
+			urlConnection.setRequestMethod("POST");
+			urlConnection.addRequestProperty("Authorization", "Basic " + base64EncodedCredentials);
+			urlConnection.setRequestProperty("Content-Type", "application/json"); 
+			urlConnection.setDoOutput(true);
+	
+			urlConnection.connect();
+			//get the writer
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(urlConnection.getOutputStream()));
+			
+			JSONObject data = new JSONObject();
+			data.put("firstname", "Nirmal");
+			data.put("lastname","Parwate");
+			data.put("age", 25);
+			
+			writer.write(data.toString());
+			writer.flush();
+			writer.close();
+			//write the data
+			
+			String line;
+			BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+			while ((line = reader.readLine()) != null) {
+			    Log.d("APITEST", line);
+			}
+			
+			Log.d("APITEST","Everything successful");
+			
+			
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+        
         
         
     }
